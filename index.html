@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Tic-Tac-Toe</title>
+</head>
+<body>
+
+    <!-- game elements here -->
+    <div class="container not-visible">
+        <div>
+            <p id="player1">Player 1</p>
+        </div>
+        <div>
+            <p id="player2">Player 2</p>
+        </div>
+    </div>
+
+    <!-- dialogs -->
+    <dialog id="player-info-dialog">
+        <form method="dialog" id="player-info-form">
+            <label for="player1">Player 1:</label>
+            <input type="text" name="player1" required>
+            <label for="player2">Player 2:</label>
+            <input type="text" name="player2" required>
+            <button>okay</button>
+        </form>
+    </dialog>
+
+    <dialog id="restart-game-dialog">
+        <form id="'restart-game-form">
+            <button>restart</button>
+        </form>
+    </dialog>
+
+    <!-- scripts -->
+    <script src="script.js"></script>
+</body>
+</html>
