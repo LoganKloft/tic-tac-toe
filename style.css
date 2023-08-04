@@ -5,6 +5,12 @@ body {
     padding: 0px;
 }
 
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 p {
     margin: 16px;
 }
@@ -16,6 +22,7 @@ p {
 .container {
     justify-content: center;
     height: 80%;
+    width: 100%;
     display: grid;
     grid-template-columns: 25% 25%;
     grid-template-rows: min-content 1fr;
@@ -52,4 +59,13 @@ p {
 
 .cell {
     width: 100%;
+    display: grid;
+    justify-content: center;
+    align-content: center;
+}
+
+#win-dialog form,
+#tie-dialog form {
+    display: grid;
+    justify-content: center;
 }

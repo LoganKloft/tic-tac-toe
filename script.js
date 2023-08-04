@@ -17,11 +17,12 @@ const gameBoard = (() => {
     // returns true when successfully marking a cell on the board
     // returns false otherwise
     function mark(row, column, symbol) {
-        if (x < 0 || x > 2) return;
-        if (y < 0 || y > 2) return;
+        if (row < 0 || row > 2) return;
+        if (column < 0 || column > 2) return;
 
         if (boardIsEmptyAt(row, column))
         {
+            board[row][column] = symbol;
             return true;
         }
         else
@@ -54,7 +55,7 @@ const gameBoard = (() => {
 
         // check diagonals
         if (board[0][0] === board[1][1] &&
-            board[1][1] === bpard[2][2] &&
+            board[1][1] === board[2][2] &&
             board[0][0] !== 'e') return true;
         if (board[0][2] === board[1][1] &&
             board[1][1] === board[2][0] &&
@@ -103,6 +104,7 @@ const displayController = (() => {
         cell.setAttribute('data-column', column.toString());
 
         const symbol = document.createElement('p');
+        symbol.innerText = '\u00A0';
         symbol.classList.add('symbol');
         cell.appendChild(symbol);
 
@@ -126,25 +128,28 @@ const displayController = (() => {
         return physical_board;
     }
 
-    function displayBoard() {
-
+    const winDialog = document.getElementById('win-dialog');
+    function showWinDialog(player)
+    {
+        const winTextEl = document.getElementById('win-text');
+        winTextEl.innerText = `${player.name} wins!`;
+        winDialog.showModal();
     }
 
-    function displayWinningMessage(player) {
-
+    const tieDialog = document.getElementById('tie-dialog');
+    function showTieDialog() {
+        tieDialog.showModal();
     }
 
-    function displayPlayer1(player) {
-
-    }
-
-    function displayPlayer2(player) {
-
+    const restartGameForms = document.getElementsByClassName('restart-game-form');
+    for (form of restartGameForms) {
+        form.addEventListener('submit', () => {
+            gameController.restart();
+        })
     }
 
     return {
-        displayBoard, displayPlayer1, displayPlayer2, displayWinningMessage,
-        createEmptyBoard
+        createEmptyBoard, showWinDialog, showTieDialog
     };
 })();
 
@@ -157,14 +162,40 @@ function playerFactory(name, symbol) {
 const gameController = (() => {
     const player1El = document.getElementById('player1');
     const player2El = document.getElementById('player2');
+    let player1;
+    let player2;
+    let currentPlayer;
     const container = document.getElementsByClassName('container').item(0);
+    let gameBoardEl;
 
     // show the modal to select player names
     const playerInfoDialog = document.getElementById('player-info-dialog');
     playerInfoDialog.showModal();
 
     const playerInfoForm = document.getElementById('player-info-form');
-    playerInfoForm.addEventListener('submit', () => {
+    playerInfoForm.addEventListener('submit', initialize);
+    
+    function restart() {
+        // remove physical gameboard
+        container.removeChild(gameBoardEl);
+        gameBoardEl = null;
+
+        // reset logical gameBoard
+        gameBoard.reset();
+
+        // make container invisible
+        container.classList.toggle('not-visible');
+
+        // remove highlight from players
+        player1El.classList.remove('highlight');
+        player2El.classList.remove('highlight');
+
+        // show playerInfoDialog
+        playerInfoDialog.showModal();
+    }
+
+    function initialize() {
+        // create players
         const player1Name = document.getElementsByName('player1').item(0).value;
         const player2Name = document.getElementsByName('player2').item(0).value;
 
@@ -172,12 +203,65 @@ const gameController = (() => {
         player2El.innerText = player2Name;
         player1El.classList.toggle('highlight');
 
-        const player1 = playerFactory(player1Name, 'X');
-        const player2 = playerFactory(player2Name, 'O');
+        player1 = playerFactory(player1Name, 'X');
+        player2 = playerFactory(player2Name, 'O');
+        currentPlayer = player1;
 
-        const gameBoardEl = displayController.createEmptyBoard();
+        gameBoardEl = displayController.createEmptyBoard();
         container.appendChild(gameBoardEl);
 
         container.classList.toggle('not-visible');
-    });
+
+        // add event listeners for clicking a tile
+        for (child of gameBoardEl.children) {
+            child.addEventListener('click', handleCellClick)
+        }
+    }
+
+    function nextPlayerTurn()
+    {
+        if (currentPlayer == player1)
+        {
+            currentPlayer = player2;
+        }
+        else
+        {
+            currentPlayer = player1;
+        }
+
+        player1El.classList.toggle('highlight');
+        player2El.classList.toggle('highlight');
+    }
+
+    function handleCellClick(e) {
+        const cell = e.target;
+        const row = cell.getAttribute('data-row');
+        const column = cell.getAttribute('data-column');
+
+        let marked = gameBoard.mark(row, column, currentPlayer.symbol);
+
+        if (marked)
+        {
+            // make the mark
+            cell.querySelector('.symbol').innerText = currentPlayer.symbol;
+
+            // check for win
+            if (gameBoard.checkWin())
+            {
+                displayController.showWinDialog(currentPlayer);
+                return; // break early
+            }
+
+            // check for tie
+            if (gameBoard.checkTie())
+            {
+                displayController.showTieDialog();
+                return; // break early
+            }
+
+            nextPlayerTurn();
+        }
+    }
+
+    return { restart }
 })();
